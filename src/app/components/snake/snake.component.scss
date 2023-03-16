@@ -1,13 +1,16 @@
 .container {
   display: flex;
   flex-wrap: wrap;
-  border-radius: 1px solid red;
   margin-inline: auto;
   width: 400px;
 
   &-cell {
     width: 20px;
     height: 20px;
-    border: 1px solid red;
+    border: 1px solid black;
   }
+}
+
+.snake {
+   background-color: blue;
 }

@@ -1,5 +1,7 @@
-<p>snake works!</p>
-
 <div class="container">
-  <div class="container-cell" *ngFor="let cell of grid"></div>
+  <div
+    class="container-cell"
+    *ngFor="let cell of grid; let i = index"
+    [class.snake]="cell.isSnake"
+  ></div>
 </div>
