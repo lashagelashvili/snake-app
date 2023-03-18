@@ -1,7 +1,10 @@
 <div class="container">
-  <div
-    class="container-cell"
-    *ngFor="let cell of grid; let i = index"
-    [class.snake]="cell.isSnake"
-  ></div>
+  <ng-container *ngFor="let row of grid; index as rowIndex">
+    <div
+      class="container-cell"
+      [class.snake]="tile.isSnake"
+      [class.head]="tile.isHead"
+      *ngFor="let tile of row"
+    ></div>
+  </ng-container>
 </div>
