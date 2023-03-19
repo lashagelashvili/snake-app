@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { interval, tap } from 'rxjs';
-import { Snake } from './model';
+import { catchError, interval, of, tap } from 'rxjs';
+import { Snake, Map, Tile, SnakePart } from './model';
 
 @Component({
   selector: 'app-snake',
@@ -9,72 +9,81 @@ import { Snake } from './model';
 })
 export class SnakeComponent implements OnInit {
   size = 20;
-  grid: Snake[][] = [];
-  // grid: Snake[][] = new Array(this.size * this.size)
-  //   .fill({} as Snake)
-  //   .map(() => ({ isSnake: false, isFood: false, isHead: false }));
+  grid: Tile[][] = [];
+  snake: Snake;
+
+  snake_body: Tile = {
+    isFood: false,
+    isSnake: true,
+    isHead: false,
+  };
+
+  snake_head: Tile = {
+    isFood: false,
+    isSnake: false,
+    isHead: true,
+  };
 
   constructor() {}
 
   ngOnInit(): void {
-    this.createMap();
-    // this.initialState();
-    // console.log(this.grid);
-    // interval(700).subscribe((num) => {
-    //   console.log(num);
-    //   let lastCell = this.grid[num];
-    //   let currentHead = this.grid[num + 2];
-    //   let nextCell = this.grid[num + 3];
-    //   // currentHead.isHead = true;
-    //   this.grid[num + 3] = { ...this.grid[num], isHead: true };
-    //   this.grid[num + 2].isHead = false;
-    //   this.grid[num].isSnake = false;
-    //   this.grid[num].isHead = false;
-    //   // nextCell = { ...lastCell, isHead: true };
-    //   // lastCell.isSnake = false;
-    //   // currentHead.isHead = false;
-    // });
+    // this.grid = this.defaultMap();
+    interval(1000).pipe(
+      tap((num) => {
+        this.grid = this.updateMap(this.defaultSnake(), this.defaultMap());
+        // this.grid[0][num + 3].isSnake = true;
+        // this.grid[0][num + 3].isHead = true;
+
+        // this.grid[0][num].isSnake = false;
+        // this.grid[0][num + 2].isHead = false;
+      }),
+      catchError((err) => {
+        throw err;
+      })
+    );
+    // .subscribe();
   }
 
-  createMap() {
+  defaultMap() {
+    let map: Tile[][] = [];
     for (let i = 0; i < this.size; i++) {
-      this.grid[i] = [];
+      map[i] = [];
       for (let j = 0; j < this.size; j++) {
-        this.grid[i][j] = { isSnake: false, isHead: false, isFood: false };
+        map[i][j] = { isSnake: false, isHead: false, isFood: false };
       }
     }
+    console.log(map);
+    return map;
   }
 
-  // initialState() {
-  //   for (let i = 0; i < 3; i++) {
-  //     if (i === 2) {
-  //       this.grid[i].isHead = true;
-  //       this.grid[i].isSnake = true;
-  //       return;
-  //     }
+  defaultSnake() {
+    let body = [
+      { i: 0, j: 0 },
+      { i: 0, j: 1 },
+      { i: 0, j: 2 },
+    ];
 
-  //     this.grid[i].isSnake = true;
-  //   }
-  // }
+    let head = { i: 0, j: 3 };
 
-  // public trackItem(index: number, item: any) {
-  //   return item.isHead;
-  // }
+    let defaultSnake: Snake = {
+      body,
+      head,
+    };
+
+    return defaultSnake;
+  }
+
+  updateMap(snake: Snake, map: Tile[][]) {
+    snake.body.forEach((part) => {
+      map[part.i][part.j] = this.snake_body;
+    });
+
+    map[snake.head.i][snake.head.j] = this.snake_head;
+
+    return map;
+  }
+
+  trackByIndex(index: number) {
+    return index;
+  }
 }
-
-// this.grid = [
-//   [
-//     { isSnake: true, isHead: false, isFood: false },
-//     { isSnake: true, isHead: false, isFood: false },
-//     { isSnake: true, isHead: false, isFood: false },
-//     { isSnake: true, isHead: false, isFood: false },
-//     { isSnake: true, isHead: false, isFood: false },
-//     { isSnake: false, isHead: false, isFood: false },
-//     { isSnake: false, isHead: false, isFood: false },
-//     { isSnake: false, isHead: false, isFood: false },
-//   ],
-//   [],
-//   [],
-//   [],
-//   [],
-// ];
