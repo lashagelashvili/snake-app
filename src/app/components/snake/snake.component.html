@@ -1,10 +1,10 @@
 <div class="container">
-  <ng-container *ngFor="let row of grid; index as rowIndex">
+  <ng-container *ngFor="let row of grid; index as i; trackBy: trackByIndex">
     <div
       class="container-cell"
       [class.snake]="tile.isSnake"
       [class.head]="tile.isHead"
-      *ngFor="let tile of row"
+      *ngFor="let tile of row; trackBy: trackByIndex"
     ></div>
   </ng-container>
 </div>
