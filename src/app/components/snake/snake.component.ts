@@ -132,6 +132,16 @@ export class SnakeComponent implements OnInit {
         i: head.i,
         j: head.j + 1,
       };
+    } else if (direction === 'ArrowUp') {
+      newHead = {
+        i: head.i - 1,
+        j: head.j,
+      };
+    } else {
+      newHead = {
+        i: head.i,
+        j: head.j - 1,
+      };
     }
 
     return newHead;
