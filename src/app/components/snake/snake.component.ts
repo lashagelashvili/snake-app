@@ -103,6 +103,15 @@ export class SnakeComponent implements OnInit {
       console.log('you lost');
       this.game$.next();
       return snake; // reurn last state
+    } else if (newHead.j < 0) {
+      this.gameRunning$.next();
+      return snake;
+    } else if (newHead.i > 19) {
+      this.gameRunning$.next();
+      return snake;
+    } else if (newHead.i < 0) {
+      this.gameRunning$.next();
+      return snake;
     }
 
     snake.body.shift();
