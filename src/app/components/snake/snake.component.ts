@@ -7,6 +7,7 @@ import {
   takeUntil,
   tap,
   map as rxMap,
+  merge,
 } from 'rxjs';
 import { Snake, Map, Tile, Direction, SnakePart } from './model';
 
@@ -32,7 +33,7 @@ export class SnakeComponent implements OnInit {
     isHead: true,
   };
 
-  game$ = new Subject<void>();
+  gameRunning$ = new Subject<void>();
 
   constructor() {}
 
@@ -41,26 +42,24 @@ export class SnakeComponent implements OnInit {
     let map = this.defaultMap();
     this.grid = this.updateMap(snake, map); // defaultt
 
-    let direction$ = fromEvent<KeyboardEvent>(document, 'keydown')
-      .pipe(
-        distinctUntilChanged(
-          (a, b) => a === b,
-          (event: KeyboardEvent) => event.key
-        ),
-        rxMap((event) => event.key),
-        tap((direction) => (snake.direction = direction as Direction))
-      )
-      .subscribe();
+    let direction$ = fromEvent<KeyboardEvent>(document, 'keydown').pipe(
+      distinctUntilChanged(
+        (a, b) => a === b,
+        (event: KeyboardEvent) => event.key
+      ),
+      rxMap((event) => event.key),
+      tap((direction) => (snake.direction = direction as Direction))
+    );
 
-    let tick$ = interval(800);
-    tick$
-      .pipe(
-        tap((_) => {
-          this.grid = this.updateMap(this.moveSnake(snake), this.defaultMap());
-        }),
-        takeUntil(this.game$)
-      )
-      .subscribe();
+    let tick$ = interval(800).pipe(
+      tap((_) => {
+        this.grid = this.updateMap(this.moveSnake(snake), this.defaultMap());
+      })
+    );
+
+    let game$ = merge(direction$, tick$);
+
+    game$.pipe(takeUntil(this.gameRunning$)).subscribe();
   }
 
   defaultMap() {
@@ -94,14 +93,11 @@ export class SnakeComponent implements OnInit {
 
   moveSnake(snake: Snake) {
     let lastHead = snake.head;
-    // console.log(snake);
-    // let newHead = { i: snake.head.i, j: snake.head.j + 1 };
     let newHead = this.changeDirection(lastHead, snake.direction);
 
     if (newHead.j > 19) {
-      // check for right border
       console.log('you lost');
-      this.game$.next();
+      this.gameRunning$.next();
       return snake; // reurn last state
     } else if (newHead.j < 0) {
       this.gameRunning$.next();
@@ -123,20 +119,14 @@ export class SnakeComponent implements OnInit {
   }
 
   changeDirection(head: SnakePart, direction: Direction) {
-    console.log(head, direction);
-
     let newHead: SnakePart = { i: 0, j: 0 };
 
     if (direction === 'ArrowDown') {
-      console.log('down');
-
       newHead = {
         i: head.i + 1,
         j: head.j,
       };
     } else if (direction === 'ArrowRight') {
-      console.log('left');
-
       newHead = {
         i: head.i,
         j: head.j + 1,
