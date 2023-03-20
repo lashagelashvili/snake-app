@@ -1,6 +1,14 @@
 import { Component, OnInit } from '@angular/core';
-import { catchError, interval, of, tap } from 'rxjs';
-import { Snake, Map, Tile, SnakePart } from './model';
+import {
+  distinctUntilChanged,
+  fromEvent,
+  interval,
+  Subject,
+  takeUntil,
+  tap,
+  map as rxMap,
+} from 'rxjs';
+import { Snake, Map, Tile, Direction, SnakePart } from './model';
 
 @Component({
   selector: 'app-snake',
@@ -24,24 +32,35 @@ export class SnakeComponent implements OnInit {
     isHead: true,
   };
 
+  game$ = new Subject<void>();
+
   constructor() {}
 
   ngOnInit(): void {
-    // this.grid = this.defaultMap();
-    interval(1000).pipe(
-      tap((num) => {
-        this.grid = this.updateMap(this.defaultSnake(), this.defaultMap());
-        // this.grid[0][num + 3].isSnake = true;
-        // this.grid[0][num + 3].isHead = true;
+    let snake = this.defaultSnake();
+    let map = this.defaultMap();
+    this.grid = this.updateMap(snake, map); // defaultt
 
-        // this.grid[0][num].isSnake = false;
-        // this.grid[0][num + 2].isHead = false;
-      }),
-      catchError((err) => {
-        throw err;
-      })
-    );
-    // .subscribe();
+    let direction$ = fromEvent<KeyboardEvent>(document, 'keydown')
+      .pipe(
+        distinctUntilChanged(
+          (a, b) => a === b,
+          (event: KeyboardEvent) => event.key
+        ),
+        rxMap((event) => event.key),
+        tap((direction) => (snake.direction = direction as Direction))
+      )
+      .subscribe();
+
+    let tick$ = interval(800);
+    tick$
+      .pipe(
+        tap((_) => {
+          this.grid = this.updateMap(this.moveSnake(snake), this.defaultMap());
+        }),
+        takeUntil(this.game$)
+      )
+      .subscribe();
   }
 
   defaultMap() {
@@ -52,25 +71,70 @@ export class SnakeComponent implements OnInit {
         map[i][j] = { isSnake: false, isHead: false, isFood: false };
       }
     }
-    console.log(map);
     return map;
   }
 
   defaultSnake() {
+    let direction = Direction.RIGHT;
     let body = [
       { i: 0, j: 0 },
       { i: 0, j: 1 },
       { i: 0, j: 2 },
     ];
-
     let head = { i: 0, j: 3 };
 
     let defaultSnake: Snake = {
       body,
       head,
+      direction,
     };
 
     return defaultSnake;
+  }
+
+  moveSnake(snake: Snake) {
+    let lastHead = snake.head;
+    // console.log(snake);
+    // let newHead = { i: snake.head.i, j: snake.head.j + 1 };
+    let newHead = this.changeDirection(lastHead, snake.direction);
+
+    if (newHead.j > 19) {
+      // check for right border
+      console.log('you lost');
+      this.game$.next();
+      return snake; // reurn last state
+    }
+
+    snake.body.shift();
+    snake.body.push(lastHead);
+
+    snake.head = newHead;
+
+    return snake;
+  }
+
+  changeDirection(head: SnakePart, direction: Direction) {
+    console.log(head, direction);
+
+    let newHead: SnakePart = { i: 0, j: 0 };
+
+    if (direction === 'ArrowDown') {
+      console.log('down');
+
+      newHead = {
+        i: head.i + 1,
+        j: head.j,
+      };
+    } else if (direction === 'ArrowRight') {
+      console.log('left');
+
+      newHead = {
+        i: head.i,
+        j: head.j + 1,
+      };
+    }
+
+    return newHead;
   }
 
   updateMap(snake: Snake, map: Tile[][]) {
