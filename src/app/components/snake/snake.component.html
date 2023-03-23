@@ -4,6 +4,7 @@
       class="container-cell"
       [class.snake]="tile.isSnake"
       [class.head]="tile.isHead"
+      [class.food]="tile.isFood"
       *ngFor="let tile of row; trackBy: trackByIndex"
     ></div>
   </ng-container>
