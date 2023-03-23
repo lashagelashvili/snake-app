@@ -9,7 +9,7 @@ import {
   map as rxMap,
   merge,
 } from 'rxjs';
-import { Snake, Map, Tile, Direction, SnakePart } from './model';
+import { Snake, Map, Tile, Direction, SnakePart, Food } from './model';
 
 @Component({
   selector: 'app-snake',
@@ -33,6 +33,12 @@ export class SnakeComponent implements OnInit {
     isHead: true,
   };
 
+  food: Tile = {
+    isFood: true,
+    isSnake: false,
+    isHead: false,
+  };
+
   gameRunning$ = new Subject<void>();
 
   constructor() {}
@@ -40,7 +46,10 @@ export class SnakeComponent implements OnInit {
   ngOnInit(): void {
     let snake = this.defaultSnake();
     let map = this.defaultMap();
-    this.grid = this.updateMap(snake, map); // defaultt
+    let food = this.defaultFood();
+    this.grid = this.updateMap(snake, map, food); // default
+
+    // this.generateFood();
 
     let direction$ = fromEvent<KeyboardEvent>(document, 'keydown').pipe(
       distinctUntilChanged(
@@ -51,9 +60,13 @@ export class SnakeComponent implements OnInit {
       tap((direction) => (snake.direction = direction as Direction))
     );
 
-    let tick$ = interval(800).pipe(
+    let tick$ = interval(400).pipe(
       tap((_) => {
-        this.grid = this.updateMap(this.moveSnake(snake), this.defaultMap());
+        this.grid = this.updateMap(
+          this.moveSnake(snake),
+          this.defaultMap(),
+          food
+        );
       })
     );
 
@@ -146,14 +159,26 @@ export class SnakeComponent implements OnInit {
     return newHead;
   }
 
-  updateMap(snake: Snake, map: Tile[][]) {
+  updateMap(snake: Snake, map: Tile[][], food: Food) {
     snake.body.forEach((part) => {
       map[part.i][part.j] = this.snake_body;
     });
 
     map[snake.head.i][snake.head.j] = this.snake_head;
+    map[food.i][food.j] = this.food;
 
     return map;
+  }
+
+  defaultFood(): Food {
+    return { i: 10, j: 10 };
+  }
+
+  generateFood() {
+    let i = Math.floor(Math.random() * 20);
+    let j = Math.floor(Math.random() * 20);
+
+    this.grid[i][j] = this.food;
   }
 
   trackByIndex(index: number) {
