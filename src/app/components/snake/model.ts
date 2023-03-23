@@ -21,6 +21,11 @@ export interface Tile {
   isSnake: boolean;
 }
 
+export interface Food {
+  i: number;
+  j: number;
+}
+
 export interface SnakePart {
   i: number;
   j: number;
