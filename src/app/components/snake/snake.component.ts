@@ -76,13 +76,21 @@ export class SnakeComponent implements OnInit {
   }
 
   defaultMap() {
-    let map: Tile[][] = [];
-    for (let i = 0; i < this.size; i++) {
-      map[i] = [];
-      for (let j = 0; j < this.size; j++) {
-        map[i][j] = { isSnake: false, isHead: false, isFood: false };
-      }
-    }
+    // let map: Tile[][] = [];
+    // for (let i = 0; i < this.size; i++) {
+    //   map[i] = [];
+    //   for (let j = 0; j < this.size; j++) {
+    //     map[i][j] = { isSnake: false, isHead: false, isFood: false };
+    //   }
+    // }
+    const map: Tile[][] = Array.from({ length: this.size }, () =>
+      Array.from({ length: this.size }, () => ({
+        isSnake: false,
+        isHead: false,
+        isFood: false,
+      }))
+    );
+
     return map;
   }
 
