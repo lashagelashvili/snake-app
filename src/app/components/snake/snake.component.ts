@@ -8,6 +8,7 @@ import {
   tap,
   map as rxMap,
   merge,
+  BehaviorSubject,
 } from 'rxjs';
 import { Snake, Map, Tile, Direction, SnakePart, Food } from './model';
 
@@ -39,17 +40,18 @@ export class SnakeComponent implements OnInit {
     isHead: false,
   };
 
+  defaultFood: Food = { i: 10, j: 10 };
+
+  food$ = new BehaviorSubject<any>(this.defaultFood);
+
   gameRunning$ = new Subject<void>();
 
   constructor() {}
 
   ngOnInit(): void {
     let snake = this.defaultSnake();
-    let map = this.defaultMap();
-    let food = this.defaultFood();
-    this.grid = this.updateMap(snake, map, food); // default
-
-    // this.generateFood();
+    let food!: Food;
+    this.food$.subscribe((res) => (food = res));
 
     let direction$ = fromEvent<KeyboardEvent>(document, 'keydown').pipe(
       distinctUntilChanged(
@@ -60,10 +62,10 @@ export class SnakeComponent implements OnInit {
       tap((direction) => (snake.direction = direction as Direction))
     );
 
-    let tick$ = interval(400).pipe(
+    let tick$ = interval(200).pipe(
       tap((_) => {
         this.grid = this.updateMap(
-          this.moveSnake(snake),
+          this.moveSnake(snake, food),
           this.defaultMap(),
           food
         );
@@ -76,13 +78,6 @@ export class SnakeComponent implements OnInit {
   }
 
   defaultMap() {
-    // let map: Tile[][] = [];
-    // for (let i = 0; i < this.size; i++) {
-    //   map[i] = [];
-    //   for (let j = 0; j < this.size; j++) {
-    //     map[i][j] = { isSnake: false, isHead: false, isFood: false };
-    //   }
-    // }
     const map: Tile[][] = Array.from({ length: this.size }, () =>
       Array.from({ length: this.size }, () => ({
         isSnake: false,
@@ -102,24 +97,26 @@ export class SnakeComponent implements OnInit {
       { i: 0, j: 2 },
     ];
     let head = { i: 0, j: 3 };
+    let length = body.length;
 
     let defaultSnake: Snake = {
       body,
       head,
       direction,
+      length,
     };
 
     return defaultSnake;
   }
 
-  moveSnake(snake: Snake) {
+  moveSnake(snake: Snake, food: Food) {
     let lastHead = snake.head;
     let newHead = this.changeDirection(lastHead, snake.direction);
 
     if (newHead.j > 19) {
       console.log('you lost');
       this.gameRunning$.next();
-      return snake; // reurn last state
+      return snake;
     } else if (newHead.j < 0) {
       this.gameRunning$.next();
       return snake;
@@ -131,12 +128,23 @@ export class SnakeComponent implements OnInit {
       return snake;
     }
 
-    snake.body.shift();
-    snake.body.push(lastHead);
+    if (snake.head.i === food.i && snake.head.j === food.j) {
+      snake.length++;
+      this.food$.next(true);
+      snake.body.push(lastHead);
+      snake.head = newHead;
+      let food = this.generateFood();
+      this.food$.next(food);
 
-    snake.head = newHead;
+      return snake;
+    } else {
+      snake.body.shift();
+      snake.body.push(lastHead);
 
-    return snake;
+      snake.head = newHead;
+
+      return snake;
+    }
   }
 
   changeDirection(head: SnakePart, direction: Direction) {
@@ -173,21 +181,20 @@ export class SnakeComponent implements OnInit {
     });
 
     map[snake.head.i][snake.head.j] = this.snake_head;
+
     map[food.i][food.j] = this.food;
 
     return map;
-  }
-
-  defaultFood(): Food {
-    return { i: 10, j: 10 };
   }
 
   generateFood() {
     let i = Math.floor(Math.random() * 20);
     let j = Math.floor(Math.random() * 20);
 
-    this.grid[i][j] = this.food;
+    return { i, j };
   }
+
+  isValidMove(directon: Direction) {}
 
   trackByIndex(index: number) {
     return index;
