@@ -59,7 +59,13 @@ export class SnakeComponent implements OnInit {
         (event: KeyboardEvent) => event.key
       ),
       rxMap((event) => event.key),
-      tap((direction) => (snake.direction = direction as Direction))
+      tap((direction) => {
+        let canMove = this.canMove(snake.direction, direction as Direction);
+
+        if (canMove) {
+          snake.direction = direction as Direction;
+        }
+      })
     );
 
     let tick$ = interval(200).pipe(
@@ -194,7 +200,21 @@ export class SnakeComponent implements OnInit {
     return { i, j };
   }
 
-  isValidMove(directon: Direction) {}
+  canMove(currentDirection: Direction, nextDirection: Direction) {
+    switch (currentDirection) {
+      case Direction.RIGHT:
+        return nextDirection !== Direction.LEFT;
+
+      case Direction.DOWN:
+        return nextDirection !== Direction.UP;
+
+      case Direction.LEFT:
+        return nextDirection !== Direction.RIGHT;
+
+      case Direction.UP:
+        return nextDirection !== Direction.DOWN;
+    }
+  }
 
   trackByIndex(index: number) {
     return index;
