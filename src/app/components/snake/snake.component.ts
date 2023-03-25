@@ -119,8 +119,13 @@ export class SnakeComponent implements OnInit {
     let lastHead = snake.head;
     let newHead = this.changeDirection(lastHead, snake.direction);
 
+    if (
+      snake.body.some((part) => part.i === newHead.i && part.j === newHead.j)
+    ) {
+      this.gameRunning$.next();
+    }
+
     if (newHead.j > 19) {
-      console.log('you lost');
       this.gameRunning$.next();
       return snake;
     } else if (newHead.j < 0) {
