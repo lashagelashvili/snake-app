@@ -2,6 +2,7 @@ export interface Snake {
   body: SnakePart[];
   head: SnakePart;
   direction: Direction;
+  length: number;
 }
 
 export enum Direction {
