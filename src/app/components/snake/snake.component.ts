@@ -9,6 +9,7 @@ import {
   map as rxMap,
   merge,
   BehaviorSubject,
+  debounceTime,
 } from 'rxjs';
 import { Snake, Map, Tile, Direction, SnakePart, Food } from './model';
 
@@ -68,7 +69,7 @@ export class SnakeComponent implements OnInit {
       })
     );
 
-    let tick$ = interval(200).pipe(
+    let tick$ = interval(600).pipe(
       tap((_) => {
         this.grid = this.updateMap(
           this.moveSnake(snake, food),
@@ -139,7 +140,7 @@ export class SnakeComponent implements OnInit {
       return snake;
     }
 
-    if (snake.head.i === food.i && snake.head.j === food.j) {
+    if (newHead.i === food.i && newHead.j === food.j) {
       snake.length++;
       this.food$.next(true);
       snake.body.push(lastHead);
