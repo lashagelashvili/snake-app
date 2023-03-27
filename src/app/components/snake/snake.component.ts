@@ -47,6 +47,8 @@ export class SnakeComponent implements OnInit {
 
   gameRunning$ = new Subject<void>();
 
+  score = 0;
+
   constructor() {}
 
   ngOnInit(): void {
@@ -142,6 +144,7 @@ export class SnakeComponent implements OnInit {
 
     if (newHead.i === food.i && newHead.j === food.j) {
       snake.length++;
+      this.score++;
       this.food$.next(true);
       snake.body.push(lastHead);
       snake.head = newHead;
