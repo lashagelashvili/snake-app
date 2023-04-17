@@ -10,6 +10,11 @@ import {
   merge,
   BehaviorSubject,
   debounceTime,
+  throttleTime,
+  concatMap,
+  bufferTime,
+  of,
+  from,
 } from 'rxjs';
 import { Snake, Map, Tile, Direction, SnakePart, Food } from './model';
 
@@ -71,7 +76,7 @@ export class SnakeComponent implements OnInit {
       })
     );
 
-    let tick$ = interval(600).pipe(
+    let tick$ = interval(150).pipe(
       tap((_) => {
         this.grid = this.updateMap(
           this.moveSnake(snake, food),
